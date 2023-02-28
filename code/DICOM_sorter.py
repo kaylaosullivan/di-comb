@@ -1,8 +1,9 @@
 import os, sys, time
-import numpy as np
 import pydicom as dcm
 
+#TO DO: comment
 
+# TO DO: extend dict with other iage types
 dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PET'}
 
 def remove_RI_RT_files(PATH):
@@ -34,9 +35,9 @@ def remove_RI_RT_files(PATH):
             if dict_class_UID[RE_class] == 'RI':
                 os.system("sudo mv " + PATH+file +" " + RI_path+"/"+file)
                 RE_count += 1
-    print("----------------------------------------")
+    print("--------------------------------------------------------------------------------")
     print("Files moved: ", RT_count, " RT, ", RI_count, " RI, ",RE_count, " RE")
-    print("----------------------------------------")
+    print("--------------------------------------------------------------------------------")
                 
             
 
@@ -120,9 +121,9 @@ def sort_image_files_by_RS(PATH):
         for file in other:
             print(file)
     
-    print("----------------------------------------")
+    print("--------------------------------------------------------------------------------")
     print("Files moved: ",CT_count, " CT, ", RS_count, " RS, ", RE_count, " RE, ",RD_count, " RD")
-    print("----------------------------------------")
+    print("--------------------------------------------------------------------------------")
 
 
 
@@ -141,9 +142,9 @@ def remove_unneeded_RE_files(PATH):
 
 def organize_multiple_patients(list_patients, PATH):
     for patient in list_patients:
-        print("========================================")
+        print("================================================================================")
         print("Patient ", patient)
-        print("----------------------------------------")
+        print("--------------------------------------------------------------------------------")
         patient_path = PATH + str(patient) + "/"
         remove_RI_RT_files(patient_path)
         sort_image_files_by_RS(patient_path)
@@ -156,9 +157,8 @@ def organize_multiple_patients(list_patients, PATH):
 
 if __name__ == "__main__":
 	# TODO: error handling of args
-	print(sys.argv)
 	list_patients_to_sort = sys.argv[1:]
-	print(list_patients_to_sort)
 	PATH = '/mnt/iDriveShare/Kayla/CBCT_images/kayla_extracted/'
 
-	organize_multiple_patients(list_patients_to_sort, PATH)
+	organize_multiple_patients(list_patients_to_sort, PATH)    
+
