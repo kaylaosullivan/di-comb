@@ -156,9 +156,16 @@ def organize_multiple_patients(list_patients, PATH):
 
 
 if __name__ == "__main__":
-	# TODO: error handling of args
-	list_patients_to_sort = sys.argv[1:]
+	
 	PATH = '/mnt/iDriveShare/Kayla/CBCT_images/kayla_extracted/'
+	list_patients_to_sort = []
 
-	organize_multiple_patients(list_patients_to_sort, PATH)    
+	for patient in sys.argv[1:]:
+		if os.path.exists(PATH+patient):
+			list_patients_to_sort.append(patient)
+		else:	
+			print("Patient directory "+ PATH+patient + " does not exist.")
+	
+
+	# organize_multiple_patients(list_patients_to_sort, PATH)    
 
