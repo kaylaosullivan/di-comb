@@ -6,7 +6,15 @@ import pydicom as dcm
 # TO DO: extend dict with other iage types
 dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PET'}
 
+
 def remove_RI_RT_files(PATH):
+	"""
+	remove_RI_RT_files Sorts the DICOM RT Image files (and associated registration files) into directory "RI"
+					   and DICOM RT Treatment Record files into directory "RT". 
+
+	:param PATH: Path to patient directory.
+	"""
+
     RI_count = 0
     RT_count = 0
     RE_count = 0
@@ -42,6 +50,17 @@ def remove_RI_RT_files(PATH):
             
 
 def sort_image_files_by_RS(PATH):
+	"""
+	sort_image_files_by_RS Sorts the CT slice files (and associated registration files), RT Structure Set files
+						   and RT Dose files into directories corresponding to each image sequence. Sorting is
+						   done based on the RS file, which is associated to RD and RE files using the 
+						   FrameOfReferenceUID tag, and to the CT files using the ReferencedSOPInstanceUID tag.
+						   Since the CT files are named after this UID tag, this sorting method does not require 
+						   opening/reading the CT files.
+
+	:param PATH: Path to patient directory.
+	"""
+
     uid_dict = {}
     
     list_RE = []
@@ -128,6 +147,13 @@ def sort_image_files_by_RS(PATH):
 
 
 def remove_unneeded_RE_files(PATH):
+	"""
+	remove_unneeded_RE_files Deletes remaining registration files associated to an image sequence 
+	 						 that was not downloaded.
+
+	:param PATH: Path to patient directory.
+	"""
+
     file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) and 'RE' in f]
     for file in file_list:
         d = dcm.read_file(PATH+file)
@@ -141,15 +167,25 @@ def remove_unneeded_RE_files(PATH):
 
 
 def organize_multiple_patients(list_patients, PATH):
+	"""
+	organize_multiple_patients calls each of the sorting functions for each patient to be sorted.
+
+	:param list_patients: list of patient directories to be sorted.
+	:param PATH: main path to patient directories.
+	"""
+
     for patient in list_patients:
         print("================================================================================")
         print("Patient ", patient)
         print("--------------------------------------------------------------------------------")
         patient_path = PATH + str(patient) + "/"
+
+        # Call each sorting function
         remove_RI_RT_files(patient_path)
         sort_image_files_by_RS(patient_path)
         remove_unneeded_RE_files(patient_path)
         
+        # Print files that were not sorted
         print("Files Remaining:")
         print([f for f in os.listdir(patient_path) if os.path.isfile(os.path.join(patient_path, f))])
       
@@ -157,9 +193,10 @@ def organize_multiple_patients(list_patients, PATH):
 
 if __name__ == "__main__":
 	
-	PATH = '/mnt/iDriveShare/Kayla/CBCT_images/kayla_extracted/'
-	list_patients_to_sort = []
+	PATH = '/mnt/iDriveShare/Kayla/CBCT_images/kayla_extracted/' # Path to patient directories
+	list_patients_to_sort = [] # Patient directories to sort
 
+	# Check if command line arguments correspond to existing patient directories
 	for patient in sys.argv[1:]:
 		if os.path.exists(PATH+patient):
 			list_patients_to_sort.append(patient)
@@ -167,5 +204,5 @@ if __name__ == "__main__":
 			print("Patient directory "+ PATH+patient + " does not exist.")
 	
 
-	# organize_multiple_patients(list_patients_to_sort, PATH)    
+	organize_multiple_patients(list_patients_to_sort, PATH)    
 
