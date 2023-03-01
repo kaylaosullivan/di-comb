@@ -19,7 +19,8 @@ def remove_RI_RT_files(PATH):
 	RT_count = 0
 	RE_count = 0
 	
-	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f))]
+	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'RI' in f or 'RT' in f or 'RE' in f]
+
 	
 	RT_path = PATH + "RT"
 	if not os.path.exists(RT_path):
@@ -47,6 +48,34 @@ def remove_RI_RT_files(PATH):
 	print("Files moved: ", RT_count, " RT, ", RI_count, " RI, ",RE_count, " RE")
 	print("--------------------------------------------------------------------------------")
 				
+def remove_non_CT_image_files(PATH):
+	file_list_PE = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'PE' in f]
+	file_list_MR = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'MR' in f]
+	
+	num_PE = len(file_list_PE)
+	num_MR = len(file_list_MR)
+
+	if num_PE > 0:
+		PE_path = PATH + "PE"
+		if not os.path.exists(PE_path):
+			os.system("sudo mkdir " + PE_path)
+			print("Created directory "+PE_path)
+		for file in file_list_PE:
+			os.system("sudo mv "+PATH+file+" "+PE_path+"/"+file)
+	
+	if num_MR > 0:
+		MR_path = PATH + "MR"
+		if not os.path.exists(MR_path):
+			os.system("sudo mkdir " + MR_path)
+			print("Created directory "+MR_path)
+		for file in file_list_MR:
+			os.system("sudo mv "+PATH+file+" "+MR_path+"/"+file)
+
+	if num_PE + num_MR > 0:
+		print("--------------------------------------------------------------------------------")
+		print("Files moved: ",num_PE, " PET, ", num_MR, " MR")
+		print("--------------------------------------------------------------------------------")
+
 			
 
 def sort_image_files_by_RS(PATH):
@@ -182,9 +211,10 @@ def organize_multiple_patients(list_patients, PATH):
 
 		# Call each sorting function
 		remove_RI_RT_files(patient_path)
+		remove_non_CT_image_files(patient_path)
 		sort_image_files_by_RS(patient_path)
 		remove_unneeded_RE_files(patient_path)
-		
+
 		# Print files that were not sorted
 		print("Files Remaining:")
 		print([f for f in os.listdir(patient_path) if os.path.isfile(os.path.join(patient_path, f))])
