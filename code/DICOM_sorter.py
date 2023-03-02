@@ -4,7 +4,7 @@ import pydicom as dcm
 #TO DO: comment
 
 # TO DO: extend dict with other image types
-dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PET'}
+dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PE'}
 
 
 def remove_RI_RT_files(PATH):
@@ -217,9 +217,15 @@ def remove_unneeded_RE_files(PATH):
 	for file in file_list:
 		d = dcm.read_file(PATH+file)
 		class_UID = d.RegistrationSequence[1].ReferencedImageSequence[0].ReferencedSOPClassUID
-		if dict_class_UID[class_UID] != 'CT':
-			print("Removing "+dict_class_UID[class_UID]+" registration file.")
-#             print("sudo rm " + PATH+file)
+
+		ref_image_class = dict_class_UID[class_UID] 
+
+		if ref_image_class != 'CT' and os.path.exists(PATH+ref_image_class):
+			print("Moving "+ref_image_class+" registration file.")
+			os.system("sudo mv " + PATH+file +" " + PATH+ref_image_class+"/"+file)
+
+		else:
+			print("Removing "+ref_image_class+" registration file.")
 			os.system("sudo rm " + PATH+file)
 
 
