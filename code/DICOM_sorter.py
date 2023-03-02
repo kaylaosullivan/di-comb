@@ -11,17 +11,19 @@ def remove_RI_RT_files(PATH):
 	"""
 	remove_RI_RT_files Sorts the DICOM RT Image files (and associated registration files) into directory "RI"
 					   and DICOM RT Treatment Record files into directory "RT". 
+					   Note: This can be changed to delete the files entirely if not needed.
 
 	:param PATH: Path to patient directory.
 	"""
 
+	# Counts for the number of each file type moved
 	RI_count = 0
 	RT_count = 0
 	RE_count = 0
 	
 	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'RI' in f or 'RT' in f or 'RE' in f]
 
-	
+	# Create RT and RI directories if they don't exist
 	RT_path = PATH + "RT"
 	if not os.path.exists(RT_path):
 		os.system("sudo mkdir " + RT_path)
@@ -32,14 +34,18 @@ def remove_RI_RT_files(PATH):
 		os.system("sudo mkdir " + RI_path)
 		print("Created directory "+RI_path)
 	
+	# Go through each file in list and move into associated directory
 	for file in file_list:
 		if 'RT' in file:
 			os.system("sudo mv " + PATH+file +" " + RT_path+"/"+file)
 			RT_count += 1
+		
 		elif 'RI' in file:
 			os.system("sudo mv " + PATH+file +" " + RI_path+"/"+file)
 			RI_count += 1
+		
 		elif 'RE' in file:
+			# Check if registration file is referencing an "RI" image file
 			RE_class = dcm.read_file(PATH+file).ReferencedSeriesSequence[0].ReferencedInstanceSequence[0].ReferencedSOPClassUID
 			if dict_class_UID[RE_class] == 'RI':
 				os.system("sudo mv " + PATH+file +" " + RI_path+"/"+file)
@@ -49,12 +55,22 @@ def remove_RI_RT_files(PATH):
 	print("--------------------------------------------------------------------------------")
 				
 def remove_non_CT_image_files(PATH):
+	"""
+	remove_non_CT_image_files Sorts the DICOM MRI and PET Image files into directories "MR" and "PE".
+							  The scans are not sorted within these folders as they aren't needed for this project.
+					   		  Note: This can be changed to delete the files entirely if not needed.
+					   		  Note: Can add other image types in the same manner if they arise.
+
+	:param PATH: Path to patient directory.
+	"""
+
 	file_list_PE = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'PE' in f]
 	file_list_MR = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'MR' in f]
 	
 	num_PE = len(file_list_PE)
 	num_MR = len(file_list_MR)
 
+	# If PET or MRI files exist, create and move into associated directories
 	if num_PE > 0:
 		PE_path = PATH + "PE"
 		if not os.path.exists(PE_path):
@@ -89,21 +105,25 @@ def sort_image_files_by_RS(PATH):
 
 	:param PATH: Path to patient directory.
 	"""
-
+	# Dictionary containing the frame of reference UIDs and the associated file path they belong to
 	uid_dict = {}
 	
+	# List of each file type to be moved
 	list_RE = []
 	list_RS = []
 	list_RD = []
-	other = []
+	other = [] # Catch-all if a new file type appears
+
+	# Counts of each file type to be moved
 	CT_count = 0
 	RE_count = 0
 	RS_count = 0
 	RD_count = 0
 	
+	# Get all non-CT files
+	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) if 'CT' not in f]
 	
-	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f))]
-	
+	# Creat sub-list of file types
 	for file in file_list:
 		if 'RE' in file:
 			list_RE.append(file)
@@ -111,41 +131,49 @@ def sort_image_files_by_RS(PATH):
 			 list_RS.append(file)
 		elif 'RD' in file:
 			list_RD.append(file)
-		elif 'CT' not in file:
+		else:
 			other.append(file)
 			
+	# For each RS file, create directory and move associated CT slices
 	for file in list_RS:
-		if 'RS' in file:
-			d = dcm.read_file(PATH+file)
-			
-			new_path = PATH + d.StructureSetDate + "_" +  d.StructureSetLabel
-
-			if not os.path.exists(new_path):
-				os.system("sudo mkdir " + new_path)
-				print("Created directory "+new_path)
+		d = dcm.read_file(PATH+file)
 		
-			os.system("sudo mv " + PATH+file +" " + new_path+"/"+file)
-			RS_count += 1
-	
-			frame_of_reference_uid = d.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
-			uid_dict.update({frame_of_reference_uid: new_path})
+		new_path = PATH + d.StructureSetDate + "_" +  d.StructureSetLabel # New directory path: Date_Label
 
-		
-			if "PlanAdapt" not in d.StructureSetLabel:
-				for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
-					uid = img.ReferencedSOPInstanceUID 
-					os.system("sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm")
-					CT_count += 1
+		# Create new directory if not exists
+		if not os.path.exists(new_path):
+			os.system("sudo mkdir " + new_path)
+			print("Created directory "+new_path)
+	
+		# Move current RS file into new directory
+		os.system("sudo mv " + PATH+file +" " + new_path+"/"+file)
+		RS_count += 1
+
+		# Save the frame of reference UID into dictionary with associated new directory path
+		# Note: the RS, RD and RE files have the same FrameOfReferenceUID, so this dict is used to move RD & RE later
+		frame_of_reference_uid = d.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
+		uid_dict.update({frame_of_reference_uid: new_path}) 
+
+		# Do not gather CT files for "PlanAdapt" structure sets, as these are tests done on the planning CT which will be put into its own folder
+		# Note: this code keeps the PlanAdapt directory, but it could be deleted as it won't be useful.
+		if "PlanAdapt" not in d.StructureSetLabel:
+			# For each image slice referenced in RS file, move the correspondint CT file into the new directory
+			# Note: the CT files are automatically named as "CT.ReferencedSOPInstanceUID.dcm"
+			for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
+				uid = img.ReferencedSOPInstanceUID 
+				os.system("sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm")
+				CT_count += 1
 
 	
+	# Organize the registration (RE) files into the appropriate directories based on FrameOfReferenceUID
 	for file in list_RE:
 		d = dcm.read_file(PATH+file)
 		try:
 			frame_of_reference_uid = d.RegistrationSequence[1].FrameOfReferenceUID
 		except:
-			print("HERE")
 			frame_of_reference_uid = d.FrameOfReferenceUID
 
+		# Catch exception if RE file doesn't belong to any of the images downloaded
 		try:
 			os.system("sudo mv " + PATH+file +" " + uid_dict[frame_of_reference_uid]+"/"+file)
 			RE_count += 1
@@ -153,6 +181,7 @@ def sort_image_files_by_RS(PATH):
 			print("could not move file ", file, " with frame of ref uid ",frame_of_reference_uid)
 
 
+	# Organize the dose (RD) files into the appropriate directories based on FrameOfReferenceUID
 	for file in list_RD:
 		d = dcm.read_file(PATH+file)
 		frame_of_reference_uid = d.FrameOfReferenceUID
@@ -164,8 +193,9 @@ def sort_image_files_by_RS(PATH):
 			print("could not move file ", file, " with frame of ref uid ",frame_of_reference_uid)
 
 	
+	# Display other file types caught
 	if len(other) != 0:
-		print("Other files not moved")
+		print("Other files not moved:")
 		for file in other:
 			print(file)
 	
@@ -182,7 +212,7 @@ def remove_unneeded_RE_files(PATH):
 
 	:param PATH: Path to patient directory.
 	"""
-
+	# TO DO: move into MR and PE files if exist
 	file_list = [f for f in os.listdir(PATH) if os.path.isfile(os.path.join(PATH, f)) and 'RE' in f]
 	for file in file_list:
 		d = dcm.read_file(PATH+file)
