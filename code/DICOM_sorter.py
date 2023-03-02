@@ -3,7 +3,7 @@ import pydicom as dcm
 
 #TO DO: comment
 
-# TO DO: extend dict with other iage types
+# TO DO: extend dict with other image types
 dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PET'}
 
 
@@ -131,11 +131,11 @@ def sort_image_files_by_RS(PATH):
 			uid_dict.update({frame_of_reference_uid: new_path})
 
 		
-			
-			for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
-				uid = img.ReferencedSOPInstanceUID 
-				os.system("sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm")
-				CT_count += 1
+			if "PlanAdapt" not in d.StructureSetLabel:
+				for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
+					uid = img.ReferencedSOPInstanceUID 
+					os.system("sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm")
+					CT_count += 1
 
 	
 	for file in list_RE:
