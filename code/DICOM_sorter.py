@@ -1,9 +1,9 @@
 import os, sys, time
 import pydicom as dcm
 
-#TO DO: comment
-
-# TO DO: extend dict with other image types
+# dict_class_UID contains image class UIDs and their abbreviations. 
+# At the moment, it contains CT, MR, PE and RI UIDs, but more can be added.
+# List of image class UIDs: https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_B.5.html
 dict_class_UID = {'1.2.840.10008.5.1.4.1.1.2': 'CT', '1.2.840.10008.5.1.4.1.1.481.1': 'RI', '1.2.840.10008.5.1.4.1.1.4': 'MR', '1.2.840.10008.5.1.4.1.1.128':'PE'}
 
 
