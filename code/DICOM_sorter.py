@@ -156,7 +156,7 @@ def sort_image_files_by_RS(PATH):
 
 		# Do not gather CT files for "PlanAdapt" or "QA" structure sets, as these are tests done on the planning CT which will be put into its own folder
 		# Note: this code keeps the PlanAdapt directory, but it could be deleted as it won't be useful.
-		if "PlanAdapt" not in d.StructureSetLabel or if "QA" not in d.StructureSetLabel:
+		if "PlanAdapt" not in d.StructureSetLabel or "QA" not in d.StructureSetLabel:
 			# For each image slice referenced in RS file, move the correspondint CT file into the new directory
 			# Note: the CT files are automatically named as "CT.ReferencedSOPInstanceUID.dcm"
 			for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
