@@ -162,8 +162,11 @@ def sort_image_files_by_RS(PATH):
 			# Note: the CT files are automatically named as "CT.ReferencedSOPInstanceUID.dcm"
 			for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
 				uid = img.ReferencedSOPInstanceUID 
-				os.system("sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm")
-				CT_count += 1
+				os_cmd = "sudo mv " + PATH+"CT."+uid+".dcm" +" " + new_path+"/"+"CT."+uid+".dcm"
+
+				# Only increase CT count if command processed
+				if os.system(os_cmd) == 0:
+					CT_count += 1
 
 	
 	# Organize the registration (RE) files into the appropriate directories based on FrameOfReferenceUID
@@ -177,9 +180,10 @@ def sort_image_files_by_RS(PATH):
 		# Catch exception if RE file doesn't belong to any of the images downloaded
 		try:
 			os.system("sudo mv " + PATH+file +" " + uid_dict[frame_of_reference_uid]+"/"+file)
-			RE_count += 1
 		except:
 			print("could not move file ", file, " with frame of ref uid ",frame_of_reference_uid)
+		else:
+			RE_count += 1
 
 
 	# Organize the dose (RD) files into the appropriate directories based on FrameOfReferenceUID
@@ -187,11 +191,13 @@ def sort_image_files_by_RS(PATH):
 		d = dcm.read_file(PATH+file)
 		frame_of_reference_uid = d.FrameOfReferenceUID
 
+		# Catch exception if RD file doesn't belong to any of the images downloaded
 		try:
 			os.system("sudo mv " + PATH+file +" " + uid_dict[frame_of_reference_uid]+"/"+file)
-			RD_count += 1
 		except:
 			print("could not move file ", file, " with frame of ref uid ",frame_of_reference_uid)
+		else:
+			RD_count += 1
 
 	
 	# Display other file types caught
