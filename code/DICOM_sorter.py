@@ -137,8 +137,9 @@ def sort_image_files_by_RS(PATH):
 	# For each RS file, create directory and move associated CT slices
 	for file in list_RS:
 		d = dcm.read_file(PATH+file)
+
 		
-		new_path = PATH + d.StructureSetDate + "_" +  d.StructureSetLabel # New directory path: Date_Label
+		new_path = PATH + d.StructureSetDate + "_" +  d.StructureSetLabel.replace(" ", "_") # New directory path: Date_Label (remove spaces from label)
 
 		# Create new directory if not exists
 		if not os.path.exists(new_path):
