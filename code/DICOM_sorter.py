@@ -155,9 +155,9 @@ def sort_image_files_by_RS(PATH):
 		frame_of_reference_uid = d.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
 		uid_dict.update({frame_of_reference_uid: new_path}) 
 
-		# Do not gather CT files for "PlanAdapt" or "QA" structure sets, as these are tests done on the planning CT which will be put into its own folder
-		# Note: this code keeps the PlanAdapt directory, but it could be deleted as it won't be useful.
-		if "PlanAdapt" not in d.StructureSetLabel and "QA" not in d.StructureSetLabel:
+		# Do not gather CT files for "PlanAdapt"/"QA"/"TEST" structure sets, as these are test calculations done on the planning CT
+		# Note: this code keeps the PlanAdapt/QA/TEST directories, but it could be deleted as it won't be useful.
+		if "PlanAdap" not in d.StructureSetLabel and "QA" not in d.StructureSetLabel and "TEST" not in d.StructureSetLabel:
 			# For each image slice referenced in RS file, move the correspondint CT file into the new directory
 			# Note: the CT files are automatically named as "CT.ReferencedSOPInstanceUID.dcm"
 			for img in d.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].ContourImageSequence:
