@@ -266,7 +266,7 @@ def organize_multiple_patients(list_patients, PATH):
 
 if __name__ == "__main__":
 	
-	PATH = '/mnt/iDriveShare/Kayla/CBCT_images/kayla_extracted/' # Path to patient directories
+	PATH = '/your/path/here/' # Path to patient directories
 	list_patients_to_sort = [] # Patient directories to sort
 
 	# Check if command line arguments correspond to existing patient directories
